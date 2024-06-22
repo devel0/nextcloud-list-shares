@@ -2,24 +2,33 @@ namespace SearchAThing.NextCloudUtils;
 
 public sealed class Worker : BackgroundService
 {
-    readonly IServiceProvider serviceProvider;
     readonly CloudContext dbContext;
     readonly IHostApplicationLifetime hostLifetime;
+    readonly IConfiguration configuration;
 
     public Worker(
         IServiceProvider serviceProvider
     )
     {
-        this.serviceProvider = serviceProvider;
-
         var scope = serviceProvider.CreateScope();
+        var sp = scope.ServiceProvider;
 
-        dbContext = scope.ServiceProvider.GetRequiredService<CloudContext>();
-        hostLifetime = scope.ServiceProvider.GetRequiredService<IHostApplicationLifetime>();
+        dbContext = sp.GetRequiredService<CloudContext>();
+        hostLifetime = sp.GetRequiredService<IHostApplicationLifetime>();
+        configuration = sp.GetRequiredService<IConfiguration>();
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        var outputPathfilename = configuration.GetValue<string>("output");
+
+        if (Environment.GetCommandLineArgs().Any(w => w == "--help"))
+        {
+            Console.WriteLine($"{Assembly.GetExecutingAssembly().GetName().Name} [-o outputPathfilename.xlsx] [--help]");
+            hostLifetime.StopApplication();
+            return;
+        }
+
         var users = dbContext.OcUsers.ToList();
 
         var shares = dbContext.OcShares.ToList();
@@ -199,7 +208,10 @@ public sealed class Worker : BackgroundService
 
         ws.FinalizeWorksheet();
 
-        wb.SaveAs(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "shares.xlsx"));
+        if (outputPathfilename is null)
+            outputPathfilename = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "shares.xlsx");
+
+        wb.SaveAs(outputPathfilename);
 
         hostLifetime.StopApplication();
     }

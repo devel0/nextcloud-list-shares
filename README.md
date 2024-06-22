@@ -29,7 +29,7 @@ dotnet user-secrets set "ConnectionStrings:Cloud" "Host=DBHOST; Database=DBNAME;
 dotnet run
 ```
 
-- generated file will be in Desktop/shares.xlsx
+- generated file will be in Desktop/shares.xlsx unless `--output=SOMEPATHFILENAME` specified
 
 ## Create release
 
@@ -42,6 +42,8 @@ dotnet publish -c Release --runtime RUNTIMERID --sc
 published files will be in `bin/Release/net8.0/RUNTIMERID/publish/` ( there is no need to install dotnet on target platform thanks to `--sc` option )
 
 ### Run release
+
+- add `--output=SOMEPATHFILENAME` argument to generate the file elsewhere than `Desktop/shares.xlsx`
 
 - linux
 

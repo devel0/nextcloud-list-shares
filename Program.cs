@@ -4,7 +4,7 @@ builder.SetupAppSettings();
 
 builder.ConfigureServices(services => services    
     .AddDbContext<CloudContext>()
-    .AddHostedService<Worker>()
+    .AddHostedService<Worker>()    
 );
 
 using var host = builder.Build();

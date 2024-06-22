@@ -4,11 +4,9 @@ public static partial class Extensions
 {
 
     public static void SetupAppSettings(this IHostBuilder builder)
-    {
-        // builder.UseEnvironment("Development");//Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production");
-
+    {        
         builder.ConfigureAppConfiguration((context, config) =>
-        {            
+        {                        
             var appsettingsBase = Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
                 "appsettings.json");
@@ -18,7 +16,7 @@ public static partial class Extensions
                 $"appsettings.{context.HostingEnvironment.EnvironmentName}.json");
 
             config
-                .AddUserSecrets(Assembly.GetExecutingAssembly())
+                .AddUserSecrets(Assembly.GetExecutingAssembly())                
                 
                 .AddJsonFile(
                     appsettingsBase,
@@ -30,7 +28,7 @@ public static partial class Extensions
                     optional: true,
                     reloadOnChange: true)
 
-                .AddEnvironmentVariables();                
+                .AddEnvironmentVariables();                          
         });
     }
 
