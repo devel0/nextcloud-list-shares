@@ -10,10 +10,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/net8.0/nextcloud-list-shares.dll",
-            "args": [
-                "--output=/home/devel0/tmp/test.xlsx"                
-            ], 
+            "program": "${workspaceFolder}/bin/Debug/net8.0/nextcloud-list-shares.dll",            
             "env": {
                 "DOTNET_ENVIRONMENT": "Development"
             },           
