@@ -114,7 +114,6 @@ public sealed class Worker : BackgroundService
             cell.Style.Font.SetBold();
         }
 
-        //setCellBold("ShareType"); var colShareType = c++;
         setCellBold("Link"); var colLink = c++;
         setCellBold("User / [Group]"); var colUser = c++;
         setCellBold("READ"); var colREAD = c++;
@@ -124,6 +123,7 @@ public sealed class Worker : BackgroundService
         setCellBold("SHARE"); var colSHARE = c++;
         setCellBold("Path"); var colPath = c++;
         setCellBold("SharedBy"); var colSharedBy = c++;
+        setCellBold("ShareType"); var colShareType = c++;
 
         ++r;
 
@@ -148,15 +148,13 @@ public sealed class Worker : BackgroundService
                 Console.WriteLine($"  {string.Join(", ", y.shareTypes)} {y.ShareWith} {y.PermissionsStr} SBY:[{y.UidInitiator}]");
 
                 var isLink = y.shareTypes.Count == 1 && y.shareTypes[0] == "link";
+                var isEmailLink = y.shareTypes.Count == 1 && y.shareTypes[0] == "email";
 
-                // c = colShareType;
-                // setCell(string.Join(',', y.shareTypes), color: isLink ? LINK_COLOR : null);                
-
-                if (isLink)
+                if (isLink || isEmailLink)
                 {
                     c = colLink;
                     setCell("■", center: true, color: LINK_COLOR);
-                }
+                }                
 
                 c = colPath; setCell(path, color: isLink ? LINK_COLOR : null);
 
@@ -201,6 +199,9 @@ public sealed class Worker : BackgroundService
 
                 c = colSharedBy;
                 setCell(y.UidInitiator ?? "");
+
+                c = colShareType;
+                setCell(string.Join(',', y.shareTypes));
 
                 ++r;
             }
