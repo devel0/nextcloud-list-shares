@@ -53,7 +53,6 @@ public sealed class Worker : BackgroundService
                 .ToList()
             })
             .Where(qnfo => qnfo.FullPath.StartsWith("files/"))
-            .OrderBy(qnfo => qnfo.FullPath)
             .ToList();
 
         // flatten
@@ -92,7 +91,8 @@ public sealed class Worker : BackgroundService
                 MaxPermissions = MergePermissions(g.Select(r => r.Permissions)),
                 PermissionsStr = PermissionsToString(MergePermissions(g.Select(r => r.Permissions))),
                 shareTypes = g.Select(r => r.ShareType).ToList()
-            });
+            })
+            .OrderBy(w => w.shareTypes.FirstOrDefault() == "group" ? "0" + w.ShareWith : "1" + w.ShareWith).ThenBy(w => w.FullPath);
 
         var wb = new XLWorkbook();
         var ws = wb.AddWorksheet("Shares");
@@ -136,75 +136,71 @@ public sealed class Worker : BackgroundService
 
         var emailPathfilename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images", "email.png");
 
-        foreach (var x in q3
-            .GroupBy(w => new { w.FullPath }))
+        foreach (var y in q3)
         {
-            var path = x.Key.FullPath.StripBegin("files/");
+            var path = y.FullPath.StripBegin("files/");
 
             Console.WriteLine($"{path}");
 
-            foreach (var y in x)
+            Console.WriteLine($"  {string.Join(", ", y.shareTypes)} {y.ShareWith} {y.PermissionsStr} SBY:[{y.UidInitiator}]");
+
+            var isLink = y.shareTypes.Count == 1 && y.shareTypes[0] == "link";
+            var isEmailLink = y.shareTypes.Count == 1 && y.shareTypes[0] == "email";
+
+            if (isLink || isEmailLink)
             {
-                Console.WriteLine($"  {string.Join(", ", y.shareTypes)} {y.ShareWith} {y.PermissionsStr} SBY:[{y.UidInitiator}]");
-
-                var isLink = y.shareTypes.Count == 1 && y.shareTypes[0] == "link";
-                var isEmailLink = y.shareTypes.Count == 1 && y.shareTypes[0] == "email";
-
-                if (isLink || isEmailLink)
-                {
-                    c = colLink;
-                    setCell("■", center: true, color: LINK_COLOR);
-                }                
-
-                c = colPath; setCell(path, color: isLink ? LINK_COLOR : null);
-
-                if (y.shareTypes.Count == 1 && y.shareTypes[0] == "group")
-                {
-                    c = colUser; setCell($"[{y.ShareWith ?? ""}]");
-                }
-                else
-                {
-                    c = colUser; setCell(y.ShareWith ?? "");
-                }
-
-                if ((y.MaxPermissions & 1) == 1)
-                {
-                    c = colREAD;
-                    setCell("■", center: true, color: PERM_READ_COLOR);
-                }
-
-                if ((y.MaxPermissions & 2) == 2)
-                {
-                    c = colUPDATE;
-                    setCell("■", center: true, color: PERM_UPDATE_COLOR);
-                }
-
-                if ((y.MaxPermissions & 4) == 4)
-                {
-                    c = colCREATE;
-                    setCell("■", center: true, color: PERM_CREATE_COLOR);
-                }
-
-                if ((y.MaxPermissions & 8) == 8)
-                {
-                    c = colDELETE;
-                    setCell("■", center: true, color: PERM_DELETE_COLOR);
-                }
-
-                if ((y.MaxPermissions & 16) == 16)
-                {
-                    c = colSHARE;
-                    setCell("■", center: true, color: PERM_SHARE_COLOR);
-                }
-
-                c = colSharedBy;
-                setCell(y.UidInitiator ?? "");
-
-                c = colShareType;
-                setCell(string.Join(',', y.shareTypes));
-
-                ++r;
+                c = colLink;
+                setCell("■", center: true, color: LINK_COLOR);
             }
+
+            c = colPath; setCell(path, color: isLink ? LINK_COLOR : null);
+
+            if (y.shareTypes.Count == 1 && y.shareTypes[0] == "group")
+            {
+                c = colUser; setCell($"[{y.ShareWith ?? ""}]");
+            }
+            else
+            {
+                c = colUser; setCell(y.ShareWith ?? "");
+            }
+
+            if ((y.MaxPermissions & 1) == 1)
+            {
+                c = colREAD;
+                setCell("■", center: true, color: PERM_READ_COLOR);
+            }
+
+            if ((y.MaxPermissions & 2) == 2)
+            {
+                c = colUPDATE;
+                setCell("■", center: true, color: PERM_UPDATE_COLOR);
+            }
+
+            if ((y.MaxPermissions & 4) == 4)
+            {
+                c = colCREATE;
+                setCell("■", center: true, color: PERM_CREATE_COLOR);
+            }
+
+            if ((y.MaxPermissions & 8) == 8)
+            {
+                c = colDELETE;
+                setCell("■", center: true, color: PERM_DELETE_COLOR);
+            }
+
+            if ((y.MaxPermissions & 16) == 16)
+            {
+                c = colSHARE;
+                setCell("■", center: true, color: PERM_SHARE_COLOR);
+            }
+
+            c = colSharedBy;
+            setCell(y.UidInitiator ?? "");
+
+            c = colShareType;
+            setCell(string.Join(',', y.shareTypes));
+
+            ++r;
         }
 
         ws.FinalizeWorksheet();
